@@ -102,6 +102,13 @@ def select_images_frames(path_to_images):
         images_list.append(img)
     return images_list
 
+def select_image_frame(path_to_image):
+    images_list = []
+    img = cv2.imread(path_to_image)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    images_list.append(img)
+    return images_list
+
 def generate_cropped_landmarks(frames_list, pad=50):
     frame_landmark_list = []
     fa = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, flip_input=False, device ='cuda:0')

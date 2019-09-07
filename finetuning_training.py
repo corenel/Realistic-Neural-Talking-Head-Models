@@ -15,15 +15,16 @@ from loss.loss_generator import *
 """Hyperparameters and config"""
 device = torch.device("cuda:0")
 cpu = torch.device("cpu")
-path_to_embedding = 'e_hat_video.tar'
+path_to_embedding = 'e_hat_images.tar'
 path_to_chkpt = 'model_weights.tar'
 path_to_save = 'finetuned_model.tar'
 path_to_video = 'examples/fine_tuning/test_video.mp4'
-path_to_images = 'examples/fine_tuning/test_images'
+image_id = '01'
+path_to_images = f'inter_id/{image_id}_src.jpg'
 
 
 """Create dataset and net"""
-choice = ''
+choice = '1'
 while choice != '0' and choice != '1':
     choice = input('What source to finetune on?\n0: Video\n1: Images\n\nEnter number\n>>')
 if choice == '0': #video
@@ -104,8 +105,8 @@ for epoch in range(num_epochs):
             loss.backward(retain_graph=False)
             optimizerG.step()
             optimizerD.step()
-            
-            
+
+
             #train D again
             optimizerG.zero_grad()
             optimizerD.zero_grad()
@@ -126,9 +127,9 @@ for epoch in range(num_epochs):
             batch_end = datetime.now()
             avg_time = (batch_end - batch_start) / 10
             print('\n\navg batch time for batch size of', x.shape[0],':',avg_time)
-            
+
             batch_start = datetime.now()
-            
+
             print('[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(y)): %.4f'
                   % (epoch, num_epochs, i_batch, len(dataLoader),
                      lossD.item(), lossG.item(), r.mean(), r_hat.mean()))
@@ -157,6 +158,17 @@ for epoch in range(num_epochs):
             plt.imshow(out)
             plt.show()
 
+        if epoch % 40 == 0:
+            torch.save({
+                    'epoch': epoch,
+                    'lossesG': lossesG,
+                    'lossesD': lossesD,
+                    'G_state_dict': G.state_dict(),
+                    'D_state_dict': D.state_dict(),
+                    'optimizerG_state_dict': optimizerG.state_dict(),
+                    'optimizerD_state_dict': optimizerD.state_dict(),
+                    }, f'finetuned_model_{epoch}.tar')
+
         lossesD.append(lossD.item())
         lossesG.append(lossG.item())
 
@@ -175,5 +187,5 @@ torch.save({
         'D_state_dict': D.state_dict(),
         'optimizerG_state_dict': optimizerG.state_dict(),
         'optimizerD_state_dict': optimizerD.state_dict(),
-        }, path_to_save)
+        }, f'finetuned_model_{num_epochs}.tar')
 print('...Done saving latest')

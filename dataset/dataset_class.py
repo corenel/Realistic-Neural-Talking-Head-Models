@@ -53,10 +53,16 @@ class FineTuningImagesDataset(Dataset):
         self.device = device
     
     def __len__(self):
-        return len(os.listdir(self.path_to_images))
+        if os.path.isfile(self.path_to_images):
+            return 1
+        else:
+            return len(os.listdir(self.path_to_images))
     
     def __getitem__(self, idx):
-        frame_mark_images = select_images_frames(self.path_to_images)
+        if os.path.isfile(self.path_to_images):
+            frame_mark_images = select_image_frame(self.path_to_images)
+        else:
+            frame_mark_images = select_images_frames(self.path_to_images)
         random_idx = torch.randint(low = 0, high = len(frame_mark_images), size = (1,1))
         frame_mark_images = [frame_mark_images[random_idx]]
         frame_mark_images = generate_cropped_landmarks(frame_mark_images, pad=50)
